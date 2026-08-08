@@ -22,10 +22,13 @@ export interface TreeLayout {
   edges: LaidOutEdge[];
   width: number;
   height: number;
+  maxLevel: number;
+  minX: number;
+  maxX: number;
 }
 
 const NODE_SPACING_X = 190;
-const LEVEL_SPACING_Y = 220;
+export const LEVEL_SPACING_Y = 220;
 const CLUSTER_GAP = 260;
 
 const isParentEdge = (t: Relationship["type"]) =>
@@ -55,7 +58,8 @@ class UnionFind {
 
 export function computeLayout(people: Person[], relationships: Relationship[]): TreeLayout {
   const nodes = new Map<string, LaidOutNode>();
-  if (people.length === 0) return { nodes, edges: [], width: 0, height: 0 };
+  if (people.length === 0)
+    return { nodes, edges: [], width: 0, height: 0, maxLevel: 0, minX: 0, maxX: 0 };
 
   const uf = new UnionFind();
   for (const p of people) uf.find(p.id);
@@ -208,6 +212,8 @@ export function computeLayout(people: Person[], relationships: Relationship[]): 
   }
 
   let maxLevel = 0;
+  let minX = Infinity;
+  let maxX = -Infinity;
   for (const p of byCreated) {
     const c = getCluster(p.id);
     const lvl = level.get(p.id) ?? 0;
@@ -215,6 +221,8 @@ export function computeLayout(people: Person[], relationships: Relationship[]): 
     const offset = clusterOffsetX.get(String(c)) ?? 0;
     const x = (xPos.get(p.id) ?? 0) + offset;
     const y = lvl * LEVEL_SPACING_Y;
+    minX = Math.min(minX, x);
+    maxX = Math.max(maxX, x);
     nodes.set(p.id, { id: p.id, x, y, level: lvl, cluster: c });
   }
 
@@ -230,5 +238,13 @@ export function computeLayout(people: Person[], relationships: Relationship[]): 
   const totalWidth = cursorX;
   const totalHeight = (maxLevel + 1) * LEVEL_SPACING_Y;
 
-  return { nodes, edges, width: totalWidth, height: totalHeight };
+  return {
+    nodes,
+    edges,
+    width: totalWidth,
+    height: totalHeight,
+    maxLevel,
+    minX: Number.isFinite(minX) ? minX : 0,
+    maxX: Number.isFinite(maxX) ? maxX : 0,
+  };
 }

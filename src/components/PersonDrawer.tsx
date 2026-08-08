@@ -3,6 +3,7 @@ import type { Person, Relationship } from "../types";
 import { usePhotoUrl } from "../hooks/usePhotoUrl";
 import { deletePerson, deleteRelationship } from "../db/repo";
 import { RELATIONSHIP_TYPE_LABEL } from "../utils/relationshipOptions";
+import { cohortFor } from "../utils/generations";
 
 export default function PersonDrawer({
   person,
@@ -24,6 +25,7 @@ export default function PersonDrawer({
   onSelectPerson: (id: string) => void;
 }) {
   const photoUrl = usePhotoUrl(person?.photoBlob);
+  const cohort = cohortFor(person?.born);
 
   const related = person
     ? relationships
@@ -76,6 +78,7 @@ export default function PersonDrawer({
           <p className="drawer-dates">
             {person.born ?? "?"} — {person.died ?? "present"}
           </p>
+          {cohort && <p className="drawer-cohort">{cohort.name}</p>}
 
           {person.bio && <p className="drawer-bio">{person.bio}</p>}
 

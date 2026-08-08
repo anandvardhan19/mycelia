@@ -4,6 +4,7 @@ import type { Person } from "../types";
 import { usePhotoUrl } from "../hooks/usePhotoUrl";
 import { blobPath } from "../utils/blob";
 import { useReducedMotion } from "../hooks/useReducedMotion";
+import { cohortFor } from "../utils/generations";
 
 const RADIUS = 42;
 
@@ -14,6 +15,7 @@ export default function PersonNode({
   selected,
   dimmed,
   isNew,
+  showCohort,
   onClick,
 }: {
   person: Person;
@@ -22,6 +24,7 @@ export default function PersonNode({
   selected: boolean;
   dimmed: boolean;
   isNew: boolean;
+  showCohort: boolean;
   onClick: () => void;
 }) {
   const photoUrl = usePhotoUrl(person.photoBlob);
@@ -29,6 +32,7 @@ export default function PersonNode({
   const clipId = `clip-${person.id}`;
   const path = useMemo(() => blobPath(0, 0, RADIUS, person.id), [person.id]);
   const living = !person.died;
+  const cohort = showCohort ? cohortFor(person.born) : undefined;
 
   const initial = person.name.trim().charAt(0).toUpperCase() || "?";
 
@@ -97,6 +101,18 @@ export default function PersonNode({
       {person.born && (
         <text textAnchor="middle" y={RADIUS + (living ? 36 : 48)} fontSize={11} fill="var(--ink-soft)">
           b. {person.born}
+        </text>
+      )}
+      {cohort && (
+        <text
+          textAnchor="middle"
+          y={RADIUS + (living ? 51 : 63)}
+          fontSize={10}
+          fontStyle="italic"
+          fontFamily="var(--font-serif)"
+          fill="var(--moss-bright)"
+        >
+          {cohort.short}
         </text>
       )}
     </motion.g>

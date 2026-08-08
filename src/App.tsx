@@ -110,8 +110,9 @@ export default function App() {
           <button className="ghost-btn" onClick={() => setShareOpen(true)}>
             Share
           </button>
-          <button className="primary-btn" onClick={() => openAddPerson()}>
-            + Add person
+          <button className="primary-btn" onClick={() => openAddPerson()} aria-label="Add person">
+            <span className="btn-label-full">+ Add person</span>
+            <span className="btn-label-short">+</span>
           </button>
         </div>
       </header>

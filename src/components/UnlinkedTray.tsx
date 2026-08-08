@@ -26,12 +26,25 @@ export default function UnlinkedTray({
 }) {
   return (
     <aside className={`unlinked-tray${collapsed ? " collapsed" : ""}`}>
-      <button className="tray-toggle" onClick={onToggle}>
+      <button
+        className="tray-toggle"
+        onClick={onToggle}
+        aria-label={collapsed ? "Show unlinked relatives" : "Hide unlinked relatives"}
+        aria-expanded={!collapsed}
+      >
         <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
           <ellipse cx="12" cy="13" rx="9" ry="7" fill="none" stroke="currentColor" strokeWidth="1.6" />
           <ellipse cx="12" cy="12" rx="9" ry="7" fill="none" stroke="currentColor" strokeWidth="1.6" />
         </svg>
-        <span>Unlinked relatives{people.length > 0 ? ` (${people.length})` : ""}</span>
+        {!collapsed && (
+          <span>Unlinked relatives{people.length > 0 ? ` (${people.length})` : ""}</span>
+        )}
+        {collapsed && (
+          <span className="tray-toggle-chevron" aria-hidden="true">
+            ‹
+          </span>
+        )}
+        {collapsed && people.length > 0 && <span className="tray-count-badge">{people.length}</span>}
       </button>
       {!collapsed && (
         <div className="tray-body scroll-thin">

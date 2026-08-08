@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Person, Relationship } from "../types";
 import { computeLayout } from "../utils/layout";
+import { loadDemoFamily } from "../utils/demoFamily";
 import Connector from "./Connector";
 import PersonNode from "./PersonNode";
 import BackgroundTexture from "./BackgroundTexture";
+import GenerationBands from "./GenerationBands";
 
 interface Viewport {
   x: number;
@@ -31,6 +33,17 @@ export default function TreeCanvas({
   const [viewport, setViewport] = useState<Viewport>({ x: 0, y: 0, scale: 1 });
   const dragState = useRef<{ startX: number; startY: number; vx: number; vy: number } | null>(null);
   const hasFitted = useRef(false);
+  const [showGenerations, setShowGenerations] = useState(false);
+  const [loadingDemo, setLoadingDemo] = useState(false);
+
+  const handleLoadDemo = async () => {
+    setLoadingDemo(true);
+    try {
+      await loadDemoFamily();
+    } finally {
+      setLoadingDemo(false);
+    }
+  };
 
   useEffect(() => {
     if (hasFitted.current || !containerRef.current || layout.nodes.size === 0) return;
@@ -130,10 +143,14 @@ export default function TreeCanvas({
         <div className="empty-canvas">
           <p>No one on the tree yet.</p>
           <p className="hint">Add your first person to start the network.</p>
+          <button className="link-btn demo-link" onClick={handleLoadDemo} disabled={loadingDemo}>
+            {loadingDemo ? "Growing a demo family…" : "or explore a demo family, six generations deep"}
+          </button>
         </div>
       ) : (
         <svg width="100%" height="100%" style={{ position: "relative" }}>
           <g transform={`translate(${viewport.x}, ${viewport.y}) scale(${viewport.scale})`}>
+            {showGenerations && <GenerationBands layout={layout} people={people} />}
             {layout.edges.map((edge) => (
               <Connector key={edge.id} edge={edge} />
             ))}
@@ -150,6 +167,7 @@ export default function TreeCanvas({
                   selected={selectedId === p.id}
                   dimmed={dimmed}
                   isNew={newIds.has(p.id)}
+                  showCohort={showGenerations}
                   onClick={() => onSelect(p.id)}
                 />
               );
@@ -160,6 +178,21 @@ export default function TreeCanvas({
       <div className="zoom-controls">
         <button onClick={() => zoomBy(1.2)} aria-label="Zoom in">+</button>
         <button onClick={() => zoomBy(1 / 1.2)} aria-label="Zoom out">−</button>
+        {layout.nodes.size > 0 && (
+          <button
+            className={`generations-toggle${showGenerations ? " active" : ""}`}
+            onClick={() => setShowGenerations((v) => !v)}
+            aria-pressed={showGenerations}
+            aria-label="Toggle generational view"
+            title="Toggle generational view"
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+              <line x1="4" y1="6" x2="20" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <line x1="4" y1="18" x2="20" y2="18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </button>
+        )}
       </div>
     </div>
   );

@@ -43,7 +43,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 4px 12px;
   padding: 10px max(22px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom))
     max(22px, env(safe-area-inset-left));
   background: linear-gradient(0deg, rgba(250, 246, 234, 0.94), rgba(250, 246, 234, 0.86));
@@ -51,6 +52,12 @@
   font-size: 12px;
   color: var(--ink-soft);
   z-index: 20;
+  min-width: 0;
+}
+.app-footer span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .app-footer-tag {
@@ -64,6 +71,12 @@
   display: flex;
   gap: 10px;
   margin-left: auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.btn-label-short {
+  display: none;
 }
 
 .search-bar {
@@ -215,6 +228,11 @@ button:active {
   font-size: 13px;
   color: var(--ink-soft);
 }
+.empty-canvas .demo-link {
+  margin-top: 10px;
+  font-size: 12.5px;
+  pointer-events: auto;
+}
 
 .zoom-controls {
   position: absolute;
@@ -237,6 +255,21 @@ button:active {
 }
 .zoom-controls button:hover {
   background: var(--parchment-deep);
+}
+
+.generations-toggle {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.generations-toggle.active {
+  background: var(--moss);
+  color: var(--bone);
+  border-color: var(--moss);
+}
+.generations-toggle.active:hover {
+  background: var(--moss-bright);
 }
 
 /* Unlinked tray */
@@ -265,6 +298,32 @@ button:active {
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
+  width: 100%;
+}
+
+.unlinked-tray.collapsed .tray-toggle {
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 4px;
+  border-bottom: none;
+  height: 100%;
+}
+
+.tray-toggle-chevron {
+  font-size: 16px;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.tray-count-badge {
+  font-size: 11px;
+  background: var(--moss);
+  color: var(--bone);
+  border-radius: 10px;
+  padding: 1px 6px;
+  min-width: 16px;
+  text-align: center;
 }
 
 .tray-body {
@@ -384,7 +443,15 @@ button:active {
   text-align: center;
   color: var(--ink-soft);
   font-size: 13px;
-  margin: 4px 0 14px;
+  margin: 4px 0 4px;
+}
+.drawer-cohort {
+  text-align: center;
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--moss-bright);
+  font-size: 12.5px;
+  margin: 0 0 14px;
 }
 .drawer-bio {
   font-size: 13.5px;
@@ -719,6 +786,8 @@ button:active {
   .app-header {
     flex-wrap: wrap;
     gap: 10px;
+    padding-left: max(14px, env(safe-area-inset-left));
+    padding-right: max(14px, env(safe-area-inset-right));
   }
   .search-bar {
     width: 100%;
@@ -733,5 +802,35 @@ button:active {
   }
   .drawer {
     width: 100%;
+  }
+  .app-footer {
+    padding-left: max(14px, env(safe-area-inset-left));
+    padding-right: max(14px, env(safe-area-inset-right));
+    font-size: 11px;
+    gap: 8px;
+  }
+  .app-footer-tag {
+    text-align: right;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-actions {
+    gap: 6px;
+  }
+  .header-actions .ghost-btn,
+  .header-actions .primary-btn {
+    padding: 9px 10px;
+  }
+  .btn-label-full {
+    display: none;
+  }
+  .btn-label-short {
+    display: inline;
+  }
+  .brand h1 {
+    font-size: 17px;
+    letter-spacing: 0.08em;
   }
 }
