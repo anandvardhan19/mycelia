@@ -1,26 +1,32 @@
+import { useReducedMotion } from "../hooks/useReducedMotion";
+
 export default function BackgroundTexture() {
+  const reduced = useReducedMotion();
+
   return (
     <svg
       aria-hidden="true"
+      className="bg-texture"
       style={{
         position: "absolute",
         inset: 0,
         width: "100%",
         height: "100%",
         pointerEvents: "none",
-        opacity: 0.5,
-        mixBlendMode: "multiply",
       }}
     >
       <defs>
         <filter id="mycelia-mesh">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.012 0.018"
-            numOctaves={3}
-            seed={7}
-            result="noise"
-          />
+          <feTurbulence type="fractalNoise" baseFrequency="0.013 0.019" numOctaves={3} seed={7} result="noise">
+            {!reduced && (
+              <animate
+                attributeName="baseFrequency"
+                values="0.013 0.019;0.011 0.021;0.014 0.017;0.013 0.019"
+                dur="46s"
+                repeatCount="indefinite"
+              />
+            )}
+          </feTurbulence>
           <feColorMatrix
             in="noise"
             type="matrix"

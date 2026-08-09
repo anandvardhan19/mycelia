@@ -56,10 +56,14 @@ export default function PersonNode({
         <clipPath id={clipId}>
           <path d={path} />
         </clipPath>
+        <radialGradient id={`nodeGrad-${person.id}`} cx="32%" cy="28%" r="80%">
+          <stop offset="0%" stopColor="var(--bone)" />
+          <stop offset="100%" stopColor="var(--parchment-deep)" />
+        </radialGradient>
       </defs>
       <path
         d={path}
-        fill="var(--bone)"
+        fill={`url(#nodeGrad-${person.id})`}
         stroke={selected ? "var(--blood)" : living ? "var(--moss)" : "var(--ink-soft)"}
         strokeWidth={selected ? 3 : 2}
       />

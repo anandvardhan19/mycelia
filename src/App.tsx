@@ -9,7 +9,10 @@ import ConnectModal from "./components/ConnectModal";
 import ExportImportModal from "./components/ExportImportModal";
 import LiveSessionModal from "./components/LiveSessionModal";
 import SearchBar from "./components/SearchBar";
+import ThemeToggle from "./components/ThemeToggle";
+import UpdatePrompt from "./components/UpdatePrompt";
 import { useLiveSession } from "./hooks/useLiveSession";
+import { useTheme } from "./hooks/useTheme";
 import type { Person } from "./types";
 import "./app.css";
 
@@ -32,6 +35,7 @@ export default function App() {
   const [shareOpen, setShareOpen] = useState(false);
   const [liveOpen, setLiveOpen] = useState(false);
   const liveStatus = useLiveSession();
+  const { theme, setTheme } = useTheme();
 
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
   const [storageNotice, setStorageNotice] = useState(false);
@@ -159,6 +163,7 @@ export default function App() {
           {people.length} {people.length === 1 ? "person" : "people"} · {relationships.length}{" "}
           {relationships.length === 1 ? "relationship" : "relationships"}
         </span>
+        <ThemeToggle theme={theme} onChange={setTheme} />
         <span className="app-footer-tag">
           {liveStatus.active
             ? `live · ${liveStatus.peerCount} connected`
@@ -196,6 +201,8 @@ export default function App() {
       />
 
       <LiveSessionModal open={liveOpen} onClose={() => setLiveOpen(false)} />
+
+      <UpdatePrompt />
 
       {storageNotice && (
         <div className="toast">

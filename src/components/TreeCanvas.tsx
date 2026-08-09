@@ -3,6 +3,7 @@ import type { Person, Relationship } from "../types";
 import { computeLayout } from "../utils/layout";
 import { loadDemoFamily } from "../utils/demoFamily";
 import Connector from "./Connector";
+import FamilyConnector from "./FamilyConnector";
 import PersonNode from "./PersonNode";
 import BackgroundTexture from "./BackgroundTexture";
 import GenerationBands from "./GenerationBands";
@@ -46,27 +47,54 @@ export default function TreeCanvas({
   };
 
   useEffect(() => {
-    if (hasFitted.current || !containerRef.current || layout.nodes.size === 0) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    for (const n of layout.nodes.values()) {
-      minX = Math.min(minX, n.x);
-      maxX = Math.max(maxX, n.x);
-      minY = Math.min(minY, n.y);
-      maxY = Math.max(maxY, n.y);
+    if (hasFitted.current) return;
+
+    const tryFit = (): boolean => {
+      if (!containerRef.current || layout.nodes.size === 0) return false;
+      const rect = containerRef.current.getBoundingClientRect();
+      // A zero-size rect means the container hasn't been laid out by the browser
+      // yet (common right after mount / PWA cold start) — fitting now would
+      // permanently collapse the view to scale 0 and never recover.
+      if (rect.width < 2 || rect.height < 2) return false;
+
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      for (const n of layout.nodes.values()) {
+        minX = Math.min(minX, n.x);
+        maxX = Math.max(maxX, n.x);
+        minY = Math.min(minY, n.y);
+        maxY = Math.max(maxY, n.y);
+      }
+      const padding = 140;
+      const contentW = Math.max(1, maxX - minX + padding * 2);
+      const contentH = Math.max(1, maxY - minY + padding * 2);
+      const scale = Math.min(1, rect.width / contentW, rect.height / contentH, 1.1);
+      if (!Number.isFinite(scale) || scale <= 0) return false;
+
+      const cx = (minX + maxX) / 2;
+      const cy = (minY + maxY) / 2;
+      setViewport({
+        x: rect.width / 2 - cx * scale,
+        y: rect.height / 2 - cy * scale,
+        scale,
+      });
+      return true;
+    };
+
+    if (tryFit()) {
+      hasFitted.current = true;
+      return;
     }
-    const padding = 140;
-    const contentW = maxX - minX + padding * 2;
-    const contentH = maxY - minY + padding * 2;
-    const scale = Math.min(1, rect.width / contentW, rect.height / contentH, 1.1);
-    const cx = (minX + maxX) / 2;
-    const cy = (minY + maxY) / 2;
-    setViewport({
-      x: rect.width / 2 - cx * scale,
-      y: rect.height / 2 - cy * scale,
-      scale,
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      if (hasFitted.current) return;
+      if (tryFit()) {
+        hasFitted.current = true;
+        ro.disconnect();
+      }
     });
-    hasFitted.current = true;
+    ro.observe(el);
+    return () => ro.disconnect();
   }, [layout]);
 
   useEffect(() => {
@@ -151,6 +179,9 @@ export default function TreeCanvas({
         <svg width="100%" height="100%" style={{ position: "relative" }}>
           <g transform={`translate(${viewport.x}, ${viewport.y}) scale(${viewport.scale})`}>
             {showGenerations && <GenerationBands layout={layout} people={people} />}
+            {layout.families.map((family) => (
+              <FamilyConnector key={family.id} family={family} />
+            ))}
             {layout.edges.map((edge) => (
               <Connector key={edge.id} edge={edge} />
             ))}

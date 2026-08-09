@@ -13,7 +13,7 @@
   gap: 20px;
   padding: max(12px, env(safe-area-inset-top)) max(22px, env(safe-area-inset-right)) 12px
     max(22px, env(safe-area-inset-left));
-  background: linear-gradient(180deg, rgba(250, 246, 234, 0.94), rgba(250, 246, 234, 0.86));
+  background: linear-gradient(180deg, var(--glass-top), var(--glass-bottom));
   border-bottom: 1px solid var(--parchment-deep);
   backdrop-filter: blur(6px);
   z-index: 20;
@@ -47,7 +47,7 @@
   gap: 4px 12px;
   padding: 10px max(22px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom))
     max(22px, env(safe-area-inset-left));
-  background: linear-gradient(0deg, rgba(250, 246, 234, 0.94), rgba(250, 246, 234, 0.86));
+  background: linear-gradient(0deg, var(--glass-top), var(--glass-bottom));
   border-top: 1px solid var(--parchment-deep);
   font-size: 12px;
   color: var(--ink-soft);
@@ -65,6 +65,35 @@
   font-style: italic;
   color: var(--moss);
   opacity: 0.8;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--parchment-deep);
+  border-radius: 999px;
+  padding: 2px;
+  flex-shrink: 0;
+}
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+}
+.theme-toggle-btn:hover {
+  color: var(--ink);
+}
+.theme-toggle-btn.active {
+  background: var(--bone);
+  color: var(--moss-deep);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .header-actions {
@@ -277,7 +306,7 @@ button:active {
   width: 280px;
   flex-shrink: 0;
   border-left: 1px solid var(--parchment-deep);
-  background: rgba(250, 246, 234, 0.7);
+  background: var(--glass-tray);
   display: flex;
   flex-direction: column;
   transition: width 0.2s ease;
@@ -652,6 +681,25 @@ button:active {
   border: 1px solid var(--parchment-deep);
 }
 
+.card-section {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--parchment-deep);
+}
+.card-section h3 {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.card-preview {
+  margin-top: 12px;
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  border-radius: 10px;
+  border: 1px solid var(--parchment-deep);
+  background: var(--parchment);
+}
+
 .conflict-list {
   display: flex;
   flex-direction: column;
@@ -703,6 +751,18 @@ button:active {
 @keyframes live-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.35; }
+}
+
+.branch-pulse {
+  opacity: 0;
+  animation-name: branch-glow;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes branch-glow {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 0.4; }
 }
 
 .live-session-panel {
@@ -761,8 +821,8 @@ button:active {
   bottom: calc(44px + env(safe-area-inset-bottom) + 16px);
   left: 50%;
   transform: translateX(-50%);
-  background: var(--moss-deep);
-  color: var(--bone);
+  background: var(--toast-bg);
+  color: var(--toast-text);
   padding: 12px 16px;
   border-radius: 10px;
   display: flex;
@@ -778,8 +838,23 @@ button:active {
   line-height: 1.5;
 }
 .toast .icon-btn {
-  color: var(--bone);
+  color: var(--toast-text);
   flex-shrink: 0;
+}
+
+.update-toast {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.update-toast p {
+  text-align: center;
+}
+.update-toast-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 @media (max-width: 720px) {

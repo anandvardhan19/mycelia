@@ -13,6 +13,7 @@ import {
   type ConflictResolution,
   type ImportPreview,
 } from "../utils/exportImport";
+import { renderTreeCardSvg, svgToPngBlob } from "../utils/treeCard";
 
 type Tab = "export" | "import";
 
@@ -33,6 +34,10 @@ export default function ExportImportModal({
   const [scope, setScope] = useState<"all" | "branch">("all");
   const [busy, setBusy] = useState(false);
   const [qrUrl, setQrUrl] = useState<string | undefined>(undefined);
+  const [cardBusy, setCardBusy] = useState(false);
+  const [cardPreview, setCardPreview] = useState<string | undefined>(undefined);
+  const [cardPngBlob, setCardPngBlob] = useState<Blob | undefined>(undefined);
+  const [cardError, setCardError] = useState<string | undefined>(undefined);
 
   const [preview, setPreview] = useState<ImportPreview | undefined>(undefined);
   const [resolutions, setResolutions] = useState<Map<string, ConflictResolution>>(new Map());
@@ -44,6 +49,10 @@ export default function ExportImportModal({
     setImportResult(undefined);
     setImportError(undefined);
     setQrUrl(undefined);
+    if (cardPreview) URL.revokeObjectURL(cardPreview);
+    setCardPreview(undefined);
+    setCardPngBlob(undefined);
+    setCardError(undefined);
     setTab("export");
     onClose();
   };
@@ -85,6 +94,61 @@ export default function ExportImportModal({
     } finally {
       setBusy(false);
     }
+  };
+
+  const doCard = async () => {
+    setCardBusy(true);
+    setCardError(undefined);
+    try {
+      const scopeIds =
+        scope === "branch" && focusPersonId
+          ? getConnectedCluster(focusPersonId, people, relationships)
+          : undefined;
+      const scopedPeople = scopeIds ? people.filter((p) => scopeIds.has(p.id)) : people;
+      const scopedPeopleIds = new Set(scopedPeople.map((p) => p.id));
+      const scopedRelationships = relationships.filter(
+        (r) => scopedPeopleIds.has(r.personA) && scopedPeopleIds.has(r.personB)
+      );
+      const { svg, width, height } = await renderTreeCardSvg(
+        scopedPeople,
+        scopedRelationships,
+        scope === "branch" ? "A branch of the family tree" : "The family tree"
+      );
+      const blob = await svgToPngBlob(svg, width, height);
+      setCardPngBlob(blob);
+      setCardPreview(URL.createObjectURL(blob));
+    } catch {
+      setCardError("Couldn't render the card. Try again, or use the .json export instead.");
+    } finally {
+      setCardBusy(false);
+    }
+  };
+
+  const downloadCard = () => {
+    if (!cardPngBlob) return;
+    const url = URL.createObjectURL(cardPngBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `mycelia-tree-${new Date().toISOString().slice(0, 10)}.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  };
+
+  const shareCard = async () => {
+    if (!cardPngBlob) return;
+    const filename = `mycelia-tree-${new Date().toISOString().slice(0, 10)}.png`;
+    const file = new File([cardPngBlob], filename, { type: "image/png" });
+    if (navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: "MYCELIA family tree" });
+        return;
+      } catch {
+        // fall through to download
+      }
+    }
+    downloadCard();
   };
 
   const handleFile = async (file: File) => {
@@ -163,6 +227,31 @@ export default function ExportImportModal({
             <button className="primary-btn" onClick={() => doExport(true)} disabled={busy}>
               Share…
             </button>
+          </div>
+
+          <div className="card-section">
+            <h3>Share as a picture</h3>
+            <p className="hint">
+              A single image of the tree — nodes, connections, names and dates — for posting or
+              messaging where a .json file wouldn't make sense.
+            </p>
+            <button className="ghost-btn" onClick={doCard} disabled={cardBusy || people.length === 0}>
+              {cardBusy ? "Drawing the tree…" : "Generate image card"}
+            </button>
+            {cardError && <p className="error-text">{cardError}</p>}
+            {cardPreview && (
+              <>
+                <img className="card-preview" src={cardPreview} alt="Family tree card preview" />
+                <div className="modal-actions">
+                  <button className="ghost-btn" onClick={downloadCard}>
+                    Download .png
+                  </button>
+                  <button className="primary-btn" onClick={shareCard}>
+                    Share…
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
           {focusPersonId && (
